@@ -15,15 +15,12 @@ class GalleryFactory extends Factory
      *
      * @return array<string, mixed>
      */
+    
     public function definition(): array
     {
-        $user = User::inRandomOrder()->first();
 
-        // Check if a user is found
-        $userId = $user ? $user->id : User::factory()->create()->id;
-    
         return [
-            'user_id' => $userId,
+            'user_id' => User::inRandomOrder()->first()->id,
             'title' => fake()->words(4, true),
             'description' => fake()->text($maxNbChars = 50)
         ];

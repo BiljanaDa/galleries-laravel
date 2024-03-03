@@ -37,5 +37,8 @@ Route::controller(GalleryController::class)->group(
     function() {
         Route::get('/galleries', 'index');
         Route::get('/galleries/{id}','show');
+        Route::post('/create', 'store');
+        Route::put('/galleries/{id}', 'update');
+        Route::delete('/galleries/{id}', 'destroy');
     }
 );

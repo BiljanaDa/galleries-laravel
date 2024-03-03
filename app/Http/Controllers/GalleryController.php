@@ -2,9 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CreateGalleryRequest;
+use App\Http\Requests\EditGalleryRequest;
 use App\Models\Gallery;
 use App\Http\Requests\StoreGalleryRequest;
 use App\Http\Requests\UpdateGalleryRequest;
+use App\Models\Image;
+use Illuminate\Support\Facades\Auth;
 
 class GalleryController extends Controller
 {
@@ -30,9 +34,29 @@ class GalleryController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreGalleryRequest $request)
+    public function store(CreateGalleryRequest $request)
     {
-        //
+        $validated = $request->validated();
+
+        $userIdForTesting = 1; // Zamenite sa stvarnim ID-om korisnika za testiranje
+
+        $gallery = Gallery::create([
+            'user_id' => $userIdForTesting,
+            'title' => $validated['title'],
+            'description' => $validated['description']
+        ]);
+
+        $images = $request->get('images', []);
+        foreach ($images as $image) {
+            Image::create([
+                'gallery_id' => $gallery->id,
+                'url' => $image['url']
+            ]);
+        }
+        $gallery->load('images', 'user', 'comments', 'comments.user');
+
+        return response()->json($gallery, 201);
+
     }
 
     /**
@@ -56,16 +80,31 @@ class GalleryController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(UpdateGalleryRequest $request, Gallery $gallery)
+    public function update($id, EditGalleryRequest $request)
     {
-        //
+        $validated = $request->validated();
+
+        $gallery = Gallery::findOrFail($id);
+        $gallery->update($validated);
+
+        $images = $request->get('images', []);
+        foreach ($images as $image) {
+            $imagesArr[] = Image::create([
+                'gallery_id' => $gallery->id,
+                'url' => $image['url']
+            ]);
+        }
+        $gallery->load('images', 'user', 'comments', 'comments.user');
+        return response()->json($gallery);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Gallery $gallery)
+    public function destroy($id)
     {
-        //
+        $gallery = Gallery::findOrFail($id);
+        $gallery->delete();
+        return response()->noContent();
     }
 }

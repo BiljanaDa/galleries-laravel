@@ -15,7 +15,8 @@ class Gallery extends Model
         'description'
     ];
 
-    public function user() {
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 
