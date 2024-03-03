@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+
     public function register(RegisterRequest $request)
 {
    
@@ -23,10 +24,12 @@ class AuthController extends Controller
         'email' => $validatedData['email'],
         'password' => Hash::make($validatedData['password'])
     ]);
+    $token = $user->createToken($user->name . '-AuthToken')->plainTextToken;
 
     return response()->json([
         'message' => "Registration successful",
-        'user' => $user
+        'user' => $user,
+        'token' => $token
     ]);
 }
 
@@ -60,5 +63,17 @@ public function login(LoginRequest $request)
         }
 
         return response()->json(['message' => 'You are logged out'], 200);
+    }
+
+    public function activeUser() {
+        $activeUser = Auth::user();
+        return response()->json($activeUser);
+    }
+
+    public function refreshToken() {
+        $newToken = Auth::refresh();
+        return response()->json([
+            'token' => $newToken
+        ]);
     }
 }
