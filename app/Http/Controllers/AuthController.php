@@ -6,13 +6,13 @@ use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 
 
 class AuthController extends Controller
 {
-
     public function register(RegisterRequest $request)
 {
    
@@ -70,10 +70,28 @@ public function login(LoginRequest $request)
         return response()->json($activeUser);
     }
 
-    public function refreshToken() {
-        $newToken = Auth::refresh();
-        return response()->json([
-            'token' => $newToken
-        ]);
+    public function refresh()
+    {
+        $user = Auth::user();
+
+    // Poništi sve pristupne tokene korisnika
+    $user->tokens->each(function ($token, $key) {
+        $token->delete();
+    });
+
+    // Pokreni Sanctum's TokenController kako bi stvorili novi token
+    Artisan::call('token:create', ['--user_id' => $user->id, '--abilities' => '']);
+
+    // Dobij novi token korisnika
+    $newToken = User::find($user->id)->tokens->first();
+
+    return response()->json([
+        'status' => 'success',
+        'user' => $user,
+        'authorization' => [
+            'token' => $newToken->plainTextToken,
+            'expires_in' => now()->addWeeks(1)->timestamp, // Postavite vreme isteka po vašim potrebama
+        ],
+    ]);
     }
 }

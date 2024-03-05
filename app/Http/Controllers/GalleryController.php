@@ -9,12 +9,16 @@ use App\Http\Requests\StoreGalleryRequest;
 use App\Http\Requests\UpdateGalleryRequest;
 use App\Models\Image;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 
 class GalleryController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
+
+    
+
     public function index()
     {
         $query = Gallery::with('comments', 'user', 'images');
@@ -38,10 +42,8 @@ class GalleryController extends Controller
     {
         $validated = $request->validated();
 
-        $userIdForTesting = 1; // Zamenite sa stvarnim ID-om korisnika za testiranje
-
         $gallery = Gallery::create([
-            'user_id' => $userIdForTesting,
+            'user_id' => Auth::id(),
             'title' => $validated['title'],
             'description' => $validated['description']
         ]);
@@ -56,8 +58,8 @@ class GalleryController extends Controller
         $gallery->load('images', 'user', 'comments', 'comments.user');
 
         return response()->json($gallery, 201);
-
     }
+    
 
     /**
      * Display the specified resource.
