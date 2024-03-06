@@ -8,6 +8,7 @@ use App\Models\Gallery;
 use App\Http\Requests\StoreGalleryRequest;
 use App\Http\Requests\UpdateGalleryRequest;
 use App\Models\Image;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 
@@ -19,11 +20,12 @@ class GalleryController extends Controller
 
     
 
-    public function index()
+    public function index(Request $request)
     {
-        $query = Gallery::with('comments', 'user', 'images');
-        $galleries = $query->orderBy('id', 'desc')->paginate(10);
-
+        $term = $request->query('term', '');
+        $userId = $request->query('userId', '');
+        $galleries = Gallery::searchByTerm($term, $userId)->latest()->paginate(10);
+        
         return response()->json($galleries);
     }
 
